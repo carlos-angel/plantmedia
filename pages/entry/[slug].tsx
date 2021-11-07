@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import { GetStaticProps, InferGetStaticPropsType } from 'next'
 import Link from 'next/link'
 import { Layout } from '@components/Layout'
@@ -17,11 +19,15 @@ type PathType = {
 }
 
 export const getStaticPaths = async () => {
-  const entries = await getPlantList({ limit: 10 })
+  const plantEntriesFromFS = fs
+    .readFileSync(path.join(process.cwd(), 'paths.txt'), 'utf-8')
+    .toString()
 
-  const paths: PathType[] = entries.map((plant) => ({
+  const plantEntriesToGenerate = plantEntriesFromFS.split('\n').filter(Boolean)
+
+  const paths: PathType[] = plantEntriesToGenerate.map((slug) => ({
     params: {
-      slug: plant.slug,
+      slug,
     },
   }))
 
