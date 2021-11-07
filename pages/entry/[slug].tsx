@@ -8,6 +8,7 @@ import { RichText } from '@components/RichText'
 import { AuthorCard } from '@components/AuthorCard'
 import { getPlant, getPlantList, getCategoryList } from '@api'
 import { PlantEntryInline } from '@components/PlantCollection'
+import { useRouter } from 'next/dist/client/router'
 
 type PathType = {
   params: {
@@ -26,14 +27,14 @@ export const getStaticPaths = async () => {
 
   return {
     paths,
-    fallback: 'blocking',
+    fallback: true,
   }
 }
 
 type PlantEntryPageProps = {
-  plant: Plant | null
-  otherEntries: Plant[] | null
-  categories: Category[] | null
+  plant: Plant
+  otherEntries: Plant[]
+  categories: Category[]
 }
 
 export const getStaticProps: GetStaticProps<PlantEntryPageProps> = async ({
@@ -71,10 +72,11 @@ export default function PlantEntryPage({
   otherEntries,
   categories,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
-  if (plant == null) {
+  const router = useRouter()
+  if (router.isFallback) {
     return (
       <Layout>
-        <main>404, my friend</main>
+        <main>loading awesomess...</main>
       </Layout>
     )
   }
