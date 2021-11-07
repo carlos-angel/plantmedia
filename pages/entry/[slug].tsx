@@ -1,44 +1,67 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import { GetStaticProps, InferGetStaticPropsType } from 'next'
 import { Layout } from '@components/Layout'
 import { Typography } from '@ui/Typography'
 import { Grid } from '@ui/Grid'
 import React from 'react'
 import { RichText } from '@components/RichText'
 import { AuthorCard } from '@components/AuthorCard'
-import { getPlant, QueryStatus } from '@api'
+import { getPlant, QueryStatus, getPlantList } from '@api'
 
-export default function PlantEntryPage() {
-  const [loading, setLoading] = useState<QueryStatus>('idle')
-  const [plant, setPlant] = useState<Plant | null>(null)
-  const { query } = useRouter()
-  const { slug } = query
+type PathType = {
+  params: {
+    slug: string
+  }
+}
 
-  useEffect(() => {
-    if (typeof slug !== 'string') {
-      return
+export const getStaticPaths = async () => {
+  const entries = await getPlantList({ limit: 10 })
+
+  const paths: PathType[] = entries.map((plant) => ({
+    params: {
+      slug: plant.slug,
+    },
+  }))
+
+  return {
+    paths,
+    fallback: false,
+  }
+}
+
+type PlantEntryProps = {
+  plant: Plant
+}
+
+export const getStaticProps: GetStaticProps<PlantEntryProps> = async ({
+  params,
+}) => {
+  const slug = params?.slug
+  if (typeof slug !== 'string') {
+    return {
+      notFound: true,
     }
-
-    setLoading('loading')
-    getPlant(slug)
-      .then((plant) => {
-        setPlant(plant)
-        setLoading('success')
-      })
-      .catch(() => {
-        setLoading('error')
-      })
-  }, [slug])
-
-  if (loading === 'loading' || loading === 'idle') {
-    return (
-      <Layout>
-        <main>Loading awesomeness..</main>
-      </Layout>
-    )
   }
 
-  if (plant == null || loading === 'error') {
+  try {
+    const plant = await getPlant(slug)
+    return {
+      props: {
+        plant,
+      },
+    }
+  } catch (error) {
+    return {
+      notFound: true,
+    }
+  }
+}
+
+export default function PlantEntryPage({
+  plant,
+}: InferGetStaticPropsType<typeof getStaticProps>) {
+  if (plant == null) {
     return (
       <Layout>
         <main>404, my friend</main>
