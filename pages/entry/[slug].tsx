@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
 import { GetStaticProps, InferGetStaticPropsType } from 'next'
+import Link from 'next/link'
 import { Layout } from '@components/Layout'
 import { Typography } from '@ui/Typography'
 import { Grid } from '@ui/Grid'
 import React from 'react'
 import { RichText } from '@components/RichText'
 import { AuthorCard } from '@components/AuthorCard'
-import { getPlant, QueryStatus, getPlantList } from '@api'
+import { getPlant, getPlantList, getCategoryList } from '@api'
+import { PlantEntryInline } from '@components/PlantCollection'
 
 type PathType = {
   params: {
@@ -26,15 +26,17 @@ export const getStaticPaths = async () => {
 
   return {
     paths,
-    fallback: false,
+    fallback: 'blocking',
   }
 }
 
-type PlantEntryProps = {
-  plant: Plant
+type PlantEntryPageProps = {
+  plant: Plant | null
+  otherEntries: Plant[] | null
+  categories: Category[] | null
 }
 
-export const getStaticProps: GetStaticProps<PlantEntryProps> = async ({
+export const getStaticProps: GetStaticProps<PlantEntryPageProps> = async ({
   params,
 }) => {
   const slug = params?.slug
@@ -46,10 +48,16 @@ export const getStaticProps: GetStaticProps<PlantEntryProps> = async ({
 
   try {
     const plant = await getPlant(slug)
+    const otherEntries = await getPlantList({ limit: 5 })
+    const categories = await getCategoryList({ limit: 10 })
+
     return {
       props: {
         plant,
+        otherEntries,
+        categories,
       },
+      revalidate: 5 * 60, // refresh 5 min
     }
   } catch (error) {
     return {
@@ -60,6 +68,8 @@ export const getStaticProps: GetStaticProps<PlantEntryProps> = async ({
 
 export default function PlantEntryPage({
   plant,
+  otherEntries,
+  categories,
 }: InferGetStaticPropsType<typeof getStaticProps>) {
   if (plant == null) {
     return (
@@ -90,12 +100,28 @@ export default function PlantEntryPage({
             <Typography variant="h5" component="h3" className="mb-4">
               Recent posts
             </Typography>
+            {otherEntries?.map((plantEntry) => (
+              <article className="mb-4" key={plantEntry.id}>
+                <PlantEntryInline {...plantEntry} />
+              </article>
+            ))}
           </section>
 
           <section className="mt-10">
             <Typography variant="h5" component="h3" className="mb-4">
               Categories
             </Typography>
+            <ul className="list">
+              {categories?.map((category) => (
+                <li key={category.id}>
+                  <Link passHref href={`/category/${category.slug}`}>
+                    <Typography component="a" variant="h6">
+                      {category.title}
+                    </Typography>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         </Grid>
       </Grid>
