@@ -11,6 +11,7 @@ import { AuthorCard } from '@components/AuthorCard'
 import { getPlant, getPlantList, getCategoryList } from '@api'
 import { PlantEntryInline } from '@components/PlantCollection'
 import { useRouter } from 'next/dist/client/router'
+import { Image } from '@components/Image'
 
 type PathType = {
   params: {
@@ -92,7 +93,13 @@ export default function PlantEntryPage({
       <Grid container spacing={4}>
         <Grid item xs={12} md={8} lg={9} component="article">
           <figure>
-            <img width={952} src={plant.image.url} alt={plant.image.title} />
+            <Image
+              src={plant.image.url}
+              width={952}
+              aspectRatio="3:2"
+              fit="fill"
+              alt={plant.image.title}
+            />
           </figure>
 
           <div className="px-12 pt-8">
