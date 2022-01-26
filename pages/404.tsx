@@ -1,7 +1,6 @@
-import React from 'react'
+import { Layout } from '@components/Layout'
 import { Typography } from '@ui/Typography'
 import { Button } from '@ui/Button'
-import { Layout } from '../components/Layout'
 
 export default function NotFoundPage() {
   return (
@@ -10,11 +9,9 @@ export default function NotFoundPage() {
         <Typography variant="h2" className="mb-6">
           🍂 We are sorry
         </Typography>
-
         <Typography variant="body1" className="mb-6">
           We could not find what you were looking for
         </Typography>
-
         <Button
           color="primary"
           variant="contained"
